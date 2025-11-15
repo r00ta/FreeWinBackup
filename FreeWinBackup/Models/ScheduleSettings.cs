@@ -1,0 +1,21 @@
+using System.Collections.Generic;
+
+namespace FreeWinBackup.Models
+{
+    public class ScheduleSettings
+    {
+        public List<BackupSchedule> Schedules { get; set; }
+        public string LogFilePath { get; set; }
+        public int MaxLogDays { get; set; }
+        public bool EnableEmailNotifications { get; set; }
+        public string SmtpServer { get; set; }
+        public string EmailTo { get; set; }
+
+        public ScheduleSettings()
+        {
+            Schedules = new List<BackupSchedule>();
+            MaxLogDays = 30;
+            EnableEmailNotifications = false;
+        }
+    }
+}
