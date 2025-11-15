@@ -50,17 +50,16 @@ jobs:
         id: verify-output
         shell: pwsh
         run: |
-          $outputPath = "FreeWinBackup\bin\Release"
-          if (-not (Test-Path $outputPath)) {
-            Write-Error "Build output directory not found: $outputPath"
+          # Dynamically locate the built executable in any bin\Release directory
+          $exeFile = Get-ChildItem -Path . -Recurse -Include *.exe | Where-Object { $_.DirectoryName -like '*\bin\Release' } | Select-Object -First 1
+          if (-not $exeFile) {
+            Write-Error "No executable files found in any Release build output."
             exit 1
           }
           
-          $exeFiles = Get-ChildItem -Path $outputPath -Filter "*.exe" -File
-          if ($exeFiles.Count -eq 0) {
-            Write-Error "No executable files found in build output: $outputPath"
-            exit 1
-          }
+          $outputPath = $exeFile.DirectoryName
+          Write-Host "Found build output: $outputPath"
+          Write-Host "Executable: $($exeFile.FullName)"
           
           Write-Host "Build output directory contents:"
           Get-ChildItem -Path $outputPath -Recurse | Format-Table -Property Mode, LastWriteTime, Length, Name
