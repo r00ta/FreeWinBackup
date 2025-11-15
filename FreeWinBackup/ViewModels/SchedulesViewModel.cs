@@ -102,7 +102,9 @@ namespace FreeWinBackup.ViewModels
                 DayOfWeek = SelectedSchedule.DayOfWeek,
                 DayOfMonth = SelectedSchedule.DayOfMonth,
                 LastRun = SelectedSchedule.LastRun,
-                CreatedDate = SelectedSchedule.CreatedDate
+                CreatedDate = SelectedSchedule.CreatedDate,
+                EnableRetentionPolicy = SelectedSchedule.EnableRetentionPolicy,
+                RetentionDays = SelectedSchedule.RetentionDays
             };
             IsEditing = true;
         }
@@ -164,6 +166,9 @@ namespace FreeWinBackup.ViewModels
             if (EditingSchedule.Frequency == FrequencyType.Weekly && !EditingSchedule.DayOfWeek.HasValue)
                 return false;
             if (EditingSchedule.Frequency == FrequencyType.Monthly && !EditingSchedule.DayOfMonth.HasValue)
+                return false;
+            
+            if (EditingSchedule.EnableRetentionPolicy && EditingSchedule.RetentionDays <= 0)
                 return false;
                 
             return true;

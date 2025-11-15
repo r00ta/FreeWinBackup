@@ -119,6 +119,7 @@
     <Compile Include="Services\SchedulerService.cs" />
     <Compile Include="Services\ServiceControlService.cs" />
     <Compile Include="Services\LoggingService.cs" />
+    <Compile Include="Services\RetentionService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

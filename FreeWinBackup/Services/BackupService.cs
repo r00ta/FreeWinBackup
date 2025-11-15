@@ -10,12 +10,14 @@ namespace FreeWinBackup.Services
         private readonly IStorageService _storageService;
         private readonly LoggingService _loggingService;
         private readonly ServiceControlService _serviceControl;
+        private readonly RetentionService _retentionService;
 
         public BackupService(IStorageService storageService)
         {
             _storageService = storageService;
             _loggingService = new LoggingService();
             _serviceControl = new ServiceControlService();
+            _retentionService = new RetentionService();
         }
 
         public void RunBackup(BackupSchedule schedule)
@@ -41,6 +43,9 @@ namespace FreeWinBackup.Services
 
                 // Start services after backup
                 _serviceControl.StartServices(schedule.ServicesToStop, schedule.Id, schedule.Name);
+
+                // Apply retention policy if enabled
+                _retentionService.ApplyRetentionPolicy(schedule);
 
                 stopwatch.Stop();
 

@@ -21,6 +21,10 @@ namespace FreeWinBackup.Models
         
         // For monthly schedules
         public int? DayOfMonth { get; set; }
+        
+        // Retention policy
+        public bool EnableRetentionPolicy { get; set; }
+        public int RetentionDays { get; set; }
 
         public BackupSchedule()
         {
@@ -29,6 +33,8 @@ namespace FreeWinBackup.Models
             IsEnabled = true;
             CreatedDate = DateTime.Now;
             RunTime = new TimeSpan(2, 0, 0); // Default to 2 AM
+            EnableRetentionPolicy = false;
+            RetentionDays = 7; // Default to 7 days
         }
     }
 }
