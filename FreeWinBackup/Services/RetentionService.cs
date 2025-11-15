@@ -25,23 +25,35 @@ namespace FreeWinBackup.Services
             try
             {
                 var cutoffDate = DateTime.Now.AddDays(-schedule.RetentionDays);
-                var deletedCount = 0;
+                var deletedBackupSets = 0;
                 var deletedSize = 0L;
 
-                // Get all files in destination directory and subdirectories
-                var files = Directory.GetFiles(schedule.DestinationFolder, "*", SearchOption.AllDirectories);
+                // Get all backup subdirectories (folders starting with "backup_")
+                var backupDirs = Directory.GetDirectories(schedule.DestinationFolder, "backup_*", SearchOption.TopDirectoryOnly);
 
-                foreach (var file in files)
+                foreach (var backupDir in backupDirs)
                 {
                     try
                     {
-                        var fileInfo = new FileInfo(file);
-                        if (fileInfo.LastWriteTime < cutoffDate)
+                        var dirInfo = new DirectoryInfo(backupDir);
+                        if (dirInfo.CreationTime < cutoffDate)
                         {
-                            var size = fileInfo.Length;
-                            File.Delete(file);
-                            deletedCount++;
+                            // Calculate size before deletion
+                            var size = CalculateDirectorySize(backupDir);
+                            
+                            // Delete the entire backup set
+                            Directory.Delete(backupDir, true);
+                            deletedBackupSets++;
                             deletedSize += size;
+                            
+                            _loggingService.Log(new LogEntry
+                            {
+                                ScheduleId = schedule.Id,
+                                ScheduleName = schedule.Name,
+                                Message = $"Deleted old backup set: {dirInfo.Name}",
+                                Level = LogLevel.Info,
+                                IsSuccess = true
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -50,23 +62,20 @@ namespace FreeWinBackup.Services
                         {
                             ScheduleId = schedule.Id,
                             ScheduleName = schedule.Name,
-                            Message = $"Failed to delete file {file}: {ex.Message}",
+                            Message = $"Failed to delete backup directory {backupDir}: {ex.Message}",
                             Level = LogLevel.Warning,
                             IsSuccess = false
                         });
                     }
                 }
 
-                // Clean up empty directories
-                CleanEmptyDirectories(schedule.DestinationFolder);
-
-                if (deletedCount > 0)
+                if (deletedBackupSets > 0)
                 {
                     _loggingService.Log(new LogEntry
                     {
                         ScheduleId = schedule.Id,
                         ScheduleName = schedule.Name,
-                        Message = $"Retention policy applied: deleted {deletedCount} files ({FormatBytes(deletedSize)}) older than {schedule.RetentionDays} days",
+                        Message = $"Retention policy applied: deleted {deletedBackupSets} backup set(s) ({FormatBytes(deletedSize)}) older than {schedule.RetentionDays} days",
                         Level = LogLevel.Info,
                         IsSuccess = true
                     });
@@ -85,25 +94,23 @@ namespace FreeWinBackup.Services
             }
         }
 
-        private void CleanEmptyDirectories(string path)
+        private long CalculateDirectorySize(string path)
         {
+            long size = 0;
             try
             {
-                foreach (var directory in Directory.GetDirectories(path))
+                var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+                foreach (var file in files)
                 {
-                    CleanEmptyDirectories(directory);
-                    
-                    if (!Directory.EnumerateFileSystemEntries(directory).Any())
+                    try
                     {
-                        try
-                        {
-                            Directory.Delete(directory);
-                        }
-                        catch { }
+                        size += new FileInfo(file).Length;
                     }
+                    catch { }
                 }
             }
             catch { }
+            return size;
         }
 
         private string FormatBytes(long bytes)

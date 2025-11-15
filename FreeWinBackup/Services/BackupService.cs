@@ -38,8 +38,12 @@ namespace FreeWinBackup.Services
                 // Stop services before backup
                 _serviceControl.StopServices(schedule.ServicesToStop, schedule.Id, schedule.Name);
 
-                // Perform the backup
-                var result = CopyDirectory(schedule.SourceFolder, schedule.DestinationFolder);
+                // Create versioned backup subfolder
+                var backupFolderName = $"backup_{startTime:yyyyMMdd_HHmmss}";
+                var versionedDestination = Path.Combine(schedule.DestinationFolder, backupFolderName);
+
+                // Perform the backup to the versioned folder
+                var result = CopyDirectory(schedule.SourceFolder, versionedDestination);
 
                 // Start services after backup
                 _serviceControl.StartServices(schedule.ServicesToStop, schedule.Id, schedule.Name);
@@ -62,7 +66,7 @@ namespace FreeWinBackup.Services
                 {
                     ScheduleId = schedule.Id,
                     ScheduleName = schedule.Name,
-                    Message = $"Backup completed: {schedule.Name}",
+                    Message = $"Backup completed: {schedule.Name} to {backupFolderName}",
                     Level = LogLevel.Success,
                     IsSuccess = true,
                     FilesCount = result.FilesCount,

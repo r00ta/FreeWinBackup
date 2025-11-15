@@ -184,3 +184,4 @@ tools/**
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+*.exe

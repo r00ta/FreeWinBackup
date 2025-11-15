@@ -75,8 +75,33 @@ For service control testing, identify a non-critical service that can be safely 
 - [ ] Select the schedule
 - [ ] Click "Run Now"
 - [ ] Success message appears
-- [ ] Files copied from source to destination
-- [ ] Verify all files and subdirectories copied correctly
+- [ ] Verify a new timestamped folder is created under destination (e.g., backup_20231115_143025)
+- [ ] Verify all files and subdirectories copied correctly into the timestamped folder
+- [ ] Run backup again
+- [ ] Verify a second timestamped folder is created
+- [ ] Verify both backup sets exist independently
+- [ ] Verify log message includes the backup folder name
+
+### 2b. Versioned Backups Testing
+
+#### Multiple Backup Runs
+- [ ] Create test schedule with valid source/destination
+- [ ] Run backup 3 times (wait a few seconds between runs)
+- [ ] Verify 3 separate timestamped folders exist in destination
+- [ ] Each folder name follows pattern: backup_YYYYMMDD_HHmmss
+- [ ] Each folder contains complete copy of source files
+- [ ] Modify a file in source folder
+- [ ] Run backup again
+- [ ] New backup folder contains modified file
+- [ ] Previous backup folders still contain original file version
+
+#### Backup Folder Naming
+- [ ] Run backup and note the folder name
+- [ ] Verify format: backup_YYYYMMDD_HHmmss
+- [ ] Example: backup_20231115_143025 for Nov 15, 2023 at 2:30:25 PM
+- [ ] Verify timestamp matches actual backup time (within a second)
+- [ ] Run multiple backups rapidly (within same minute)
+- [ ] Verify each gets unique folder name (different seconds)
 
 ### 3. Frequency Types Testing
 
@@ -128,23 +153,25 @@ For service control testing, identify a non-critical service that can be safely 
 - [ ] Verify files copied to destination
 
 #### Test Retention Cleanup
-- [ ] Manually modify last write time of some files to 3+ days ago:
+- [ ] Run backup multiple times (at least 3 times)
+- [ ] Verify each backup creates a new timestamped folder (backup_YYYYMMDD_HHmmss)
+- [ ] Manually modify creation time of one or more backup folders to 3+ days ago:
   ```powershell
-  $file = Get-Item "C:\path\to\backup\file.txt"
-  $file.LastWriteTime = (Get-Date).AddDays(-4)
+  $folder = Get-Item "C:\TestBackup\Destination\backup_20231110_120000"
+  $folder.CreationTime = (Get-Date).AddDays(-4)
   ```
 - [ ] Run backup again
-- [ ] Old files (older than 2 days) should be deleted
-- [ ] Check logs for retention policy messages
-- [ ] Verify recent files still exist
-- [ ] Verify empty directories are removed
+- [ ] Old backup folders (older than 2 days) should be completely deleted
+- [ ] Check logs for retention policy messages showing "deleted X backup set(s)"
+- [ ] Verify recent backup folders still exist
+- [ ] Verify all files within recent backups are intact
 
 #### Disable Retention
 - [ ] Edit schedule
 - [ ] Uncheck "Enable retention policy"
 - [ ] Save
 - [ ] Run backup
-- [ ] Verify no files are deleted
+- [ ] Verify no backup folders are deleted
 - [ ] No retention messages in logs
 
 #### Validation
