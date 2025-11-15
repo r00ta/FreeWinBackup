@@ -4,10 +4,11 @@ A free, open-source Windows backup scheduler application built with WPF and .NET
 
 ## Features
 
+- **Versioned Backups**: Each backup run creates an independent backup set in a timestamped subfolder
 - **Flexible Scheduling**: Create backup schedules with daily, weekly, or monthly frequencies
 - **Service Control**: Automatically stop and start Windows services before and after backups
 - **Folder Backup**: Full folder copy with recursive subdirectory support
-- **Retention Policy**: Automatically delete old backups based on configurable retention days
+- **Retention Policy**: Automatically delete old backup sets based on configurable retention days
 - **Comprehensive Logging**: Track all backup operations with detailed logs
 - **MVVM Architecture**: Clean separation of concerns for maintainability
 - **JSON/XML Storage**: Configure using JSON or XML for easy backup and portability
@@ -41,17 +42,40 @@ A free, open-source Windows backup scheduler application built with WPF and .NET
    - Optionally, enable retention policy and set retention days
 4. Click **Save** to save the schedule
 
+### Versioned Backups
+
+FreeWinBackup creates independent backup sets for each backup run:
+
+- **Timestamped Folders**: Each backup is stored in a subfolder with the naming pattern `backup_YYYYMMDD_HHmmss` (e.g., `backup_20231115_143025`)
+- **Non-Destructive**: Previous backups are preserved; each run creates a new complete backup set
+- **Easy Recovery**: Navigate to any timestamped folder to access a complete backup from that point in time
+- **Works with Retention**: The retention policy automatically removes entire old backup sets
+
+**Example Structure**:
+```
+DestinationFolder\
+├── backup_20231113_020000\
+│   ├── file1.txt
+│   └── subfolder\
+├── backup_20231114_020000\
+│   ├── file1.txt
+│   └── subfolder\
+└── backup_20231115_020000\
+    ├── file1.txt
+    └── subfolder\
+```
+
 ### Retention Policy
 
-The retention policy feature automatically deletes old backup files to save disk space:
+The retention policy feature automatically deletes old backup sets to save disk space:
 
 - **Enable/Disable**: Toggle retention policy per schedule
-- **Retention Days**: Specify how many days to keep backups (files older than this will be deleted)
-- **Automatic Cleanup**: After each backup completes, old files are automatically removed
-- **Smart Cleanup**: Empty directories are also removed after file deletion
+- **Retention Days**: Specify how many days to keep backup sets (backup sets older than this will be deleted)
+- **Automatic Cleanup**: After each backup completes, old backup sets are automatically removed
+- **Complete Set Deletion**: Entire backup folders are removed when they exceed the retention period
 - **Logging**: All retention actions are logged for audit purposes
 
-**Example**: If you set retention to 7 days, files older than 7 days in the destination folder will be automatically deleted after each backup.
+**Example**: If you set retention to 7 days, backup sets older than 7 days in the destination folder will be automatically deleted after each backup.
 
 ### Managing Schedules
 
