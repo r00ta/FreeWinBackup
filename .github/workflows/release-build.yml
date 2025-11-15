@@ -1,0 +1,155 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+      
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+      
+      - name: Detect solution file
+        id: detect-sln
+        shell: pwsh
+        run: |
+          $slnFiles = Get-ChildItem -Path . -Filter "*.sln" -File
+          if ($slnFiles.Count -eq 0) {
+            Write-Error "No solution file found in repository"
+            exit 1
+          }
+          
+          # Prefer solution with FreeWinBackup in name
+          $targetSln = $slnFiles | Where-Object { $_.Name -like "*FreeWinBackup*" } | Select-Object -First 1
+          if (-not $targetSln) {
+            $targetSln = $slnFiles | Select-Object -First 1
+          }
+          
+          Write-Host "Using solution file: $($targetSln.Name)"
+          echo "SLN_FILE=$($targetSln.Name)" >> $env:GITHUB_OUTPUT
+      
+      - name: Restore NuGet packages
+        run: nuget restore ${{ steps.detect-sln.outputs.SLN_FILE }}
+      
+      - name: Build solution
+        run: msbuild ${{ steps.detect-sln.outputs.SLN_FILE }} /p:Configuration=Release /p:Platform="Any CPU" /p:OutputPath=bin\Release
+      
+      - name: Verify build output
+        id: verify-output
+        shell: pwsh
+        run: |
+          $outputPath = "FreeWinBackup\bin\Release"
+          if (-not (Test-Path $outputPath)) {
+            Write-Error "Build output directory not found: $outputPath"
+            exit 1
+          }
+          
+          $exeFiles = Get-ChildItem -Path $outputPath -Filter "*.exe" -File
+          if ($exeFiles.Count -eq 0) {
+            Write-Error "No executable files found in build output: $outputPath"
+            exit 1
+          }
+          
+          Write-Host "Build output directory contents:"
+          Get-ChildItem -Path $outputPath -Recurse | Format-Table -Property Mode, LastWriteTime, Length, Name
+          
+          echo "OUTPUT_PATH=$outputPath" >> $env:GITHUB_OUTPUT
+      
+      - name: Prepare distribution folder
+        shell: pwsh
+        run: |
+          $distPath = "dist"
+          $outputPath = "${{ steps.verify-output.outputs.OUTPUT_PATH }}"
+          
+          # Create dist folder
+          New-Item -ItemType Directory -Force -Path $distPath | Out-Null
+          
+          # Copy all necessary files from build output
+          Copy-Item -Path "$outputPath\*" -Destination $distPath -Recurse -Include "*.exe", "*.dll", "*.config", "*.pdb" -Force
+          
+          Write-Host "Distribution folder contents:"
+          Get-ChildItem -Path $distPath -Recurse | Format-Table -Property Mode, LastWriteTime, Length, Name
+      
+      - name: Create release archive
+        shell: pwsh
+        run: |
+          $archiveName = "FreeWinBackup-${{ github.ref_name }}.zip"
+          Compress-Archive -Path "dist\*" -DestinationPath $archiveName -Force
+          
+          Write-Host "Created archive: $archiveName"
+          if (Test-Path $archiveName) {
+            $archiveInfo = Get-Item $archiveName
+            Write-Host "Archive size: $($archiveInfo.Length) bytes"
+          }
+      
+      - name: Generate release notes
+        id: release-notes
+        shell: pwsh
+        run: |
+          # Get previous tag
+          $previousTag = git describe --tags --abbrev=0 ${{ github.ref_name }}^ 2>$null
+          
+          $releaseNotes = ""
+          if ($previousTag) {
+            Write-Host "Generating release notes from $previousTag to ${{ github.ref_name }}"
+            $commits = git log --pretty=format:"- %s" "$previousTag..${{ github.ref_name }}"
+            $releaseNotes = @"
+          ## Changes since $previousTag
+          
+          $commits
+          "@
+          } else {
+            Write-Host "No previous tag found, using default release notes"
+            $releaseNotes = @"
+          ## FreeWinBackup - First Release
+          
+          A free, open-source Windows backup scheduler application built with WPF and .NET Framework 4.8.
+          
+          ### Features
+          - **Flexible Scheduling**: Create backup schedules with daily, weekly, or monthly frequencies
+          - **Service Control**: Automatically stop and start Windows services before and after backups
+          - **Folder Backup**: Full folder copy with recursive subdirectory support
+          - **Retention Policy**: Automatically delete old backups based on configurable retention days
+          - **Comprehensive Logging**: Track all backup operations with detailed logs
+          - **MVVM Architecture**: Clean separation of concerns for maintainability
+          - **JSON/XML Storage**: Configure using JSON or XML for easy backup and portability
+          - **User-Friendly UI**: Intuitive WPF interface for managing schedules, viewing logs, and configuring settings
+          
+          ### System Requirements
+          - Windows Server 2008 R2 or later / Windows 7 or later
+          - .NET Framework 4.8
+          - Administrator privileges (for service control and folder access)
+          
+          ### Safety Improvements
+          - Administrator manifest for proper privilege elevation
+          - Safe service control with error handling
+          - Detailed logging for audit trails
+          "@
+          }
+          
+          # Write to file for GitHub release
+          $releaseNotes | Out-File -FilePath "release-notes.txt" -Encoding utf8
+          Write-Host "Release notes prepared"
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: FreeWinBackup ${{ github.ref_name }}
+          body_path: release-notes.txt
+          files: FreeWinBackup-${{ github.ref_name }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
