@@ -1,0 +1,48 @@
+<Page x:Class="FreeWinBackup.Views.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:FreeWinBackup.ViewModels"
+      Title="SettingsPage">
+    <Page.DataContext>
+        <vm:SettingsViewModel />
+    </Page.DataContext>
+
+    <Grid Margin="10">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="10" MaxWidth="600" HorizontalAlignment="Left">
+                <GroupBox Header="General Settings" Margin="0,0,0,20">
+                    <StackPanel Margin="10" DataContext="{Binding Settings}">
+                        <Label Content="Log File Path:"/>
+                        <TextBox Text="{Binding LogFilePath, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <Label Content="Maximum Log Days to Keep:"/>
+                        <TextBox Text="{Binding MaxLogDays, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Email Notifications" Margin="0,0,0,20">
+                    <StackPanel Margin="10" DataContext="{Binding Settings}">
+                        <CheckBox Content="Enable Email Notifications" IsChecked="{Binding EnableEmailNotifications}"/>
+
+                        <Label Content="SMTP Server:"/>
+                        <TextBox Text="{Binding SmtpServer, UpdateSourceTrigger=PropertyChanged}"
+                                 IsEnabled="{Binding EnableEmailNotifications}"/>
+
+                        <Label Content="Email To:"/>
+                        <TextBox Text="{Binding EmailTo, UpdateSourceTrigger=PropertyChanged}"
+                                 IsEnabled="{Binding EnableEmailNotifications}"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <Button Content="Save Settings" Command="{Binding SaveCommand}" 
+                        Background="#3498DB" Foreground="White" FontWeight="Bold"
+                        HorizontalAlignment="Right" MinWidth="120"/>
+
+                <TextBlock Margin="0,20,0,0" TextWrapping="Wrap" Foreground="Gray" FontStyle="Italic">
+                    Note: Changes to settings will take effect immediately after saving.
+                    Backup schedules run based on their individual configurations.
+                </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
