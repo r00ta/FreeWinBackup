@@ -2,8 +2,13 @@
 
 A free, open-source Windows backup scheduler application built with WPF and .NET Framework 4.8. Designed for Windows Server 2008 R2 and later versions.
 
+**Available in two modes:**
+- **Interactive Mode**: WPF desktop application for configuration and management
+- **Service Mode**: Windows Service for automated background backups
+
 ## Features
 
+- **Windows Service Mode**: Run backups automatically in the background without user login
 - **Versioned Backups**: Each backup run creates an independent backup set in a timestamped subfolder
 - **Flexible Scheduling**: Create backup schedules with daily, weekly, or monthly frequencies
 - **Service Control**: Automatically stop and start Windows services before and after backups
@@ -100,7 +105,64 @@ Configure application settings on the **Settings** page:
 - Log retention period
 - Email notification settings (future enhancement)
 
+## Windows Service Mode
+
+FreeWinBackup can run as a Windows Service for automated background backups without requiring user login.
+
+### Quick Start
+
+1. **Build the solution** in Release mode
+2. **Install the service** using PowerShell (as Administrator):
+   ```powershell
+   cd scripts
+   .\Install-FreeWinBackupService.ps1
+   ```
+3. **Configure schedules** using the WPF application (or edit `%AppData%\FreeWinBackup\settings.json`)
+4. **Start the service**:
+   ```powershell
+   Start-Service FreeWinBackup
+   ```
+
+### Service Features
+
+- **Automatic Startup**: Service starts on system boot
+- **Background Operation**: Runs without user login
+- **Auto-Recovery**: Configured to restart automatically on failure
+- **Event Log Integration**: Logs critical events to Windows Event Log
+- **Same Configuration**: Uses the same settings.json as the WPF app
+
+### Management
+
+```powershell
+# Check service status
+Get-Service FreeWinBackup
+
+# Start/Stop/Restart
+Start-Service FreeWinBackup
+Stop-Service FreeWinBackup
+Restart-Service FreeWinBackup
+
+# View recent service events
+Get-EventLog -LogName Application -Source FreeWinBackup -Newest 10
+
+# Uninstall
+.\scripts\Uninstall-FreeWinBackupService.ps1
+```
+
+For detailed documentation on Service Mode, see **[SERVICE_MODE.md](SERVICE_MODE.md)** including:
+- Installation and configuration
+- Running under service accounts
+- Troubleshooting
+- Best practices
+- Example configurations
+
 ## Architecture
+
+The solution consists of three projects:
+
+- **FreeWinBackup.Core**: Shared class library with models and services
+- **FreeWinBackup**: WPF desktop application for interactive management
+- **FreeWinBackup.ServiceHost**: Windows Service executable for background operation
 
 The application follows the MVVM (Model-View-ViewModel) pattern:
 

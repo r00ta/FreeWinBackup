@@ -56,8 +56,54 @@
    msbuild FreeWinBackup.sln /p:Configuration=Release /p:Platform="Any CPU"
    ```
 
-5. **Find the Executable**
-   - Output will be in `FreeWinBackup\bin\Release\FreeWinBackup.exe`
+5. **Build Output Locations**
+   - WPF Application: `FreeWinBackup\bin\Release\FreeWinBackup.exe`
+   - Core Library: `FreeWinBackup.Core\bin\Release\FreeWinBackup.Core.dll`
+   - Service Host: `FreeWinBackup.ServiceHost\bin\Release\FreeWinBackup.ServiceHost.exe`
+
+## Building the Windows Service
+
+The solution includes a Windows Service host for automated background backups.
+
+### Using Visual Studio
+
+1. **Open the Solution**
+   - Open `FreeWinBackup.sln`
+
+2. **Select Release Configuration**
+   - Configuration dropdown > Release
+
+3. **Build the Solution**
+   - Build > Build Solution (F6)
+   - This builds all three projects:
+     - FreeWinBackup.Core (shared library)
+     - FreeWinBackup (WPF app)
+     - FreeWinBackup.ServiceHost (Windows Service)
+
+4. **Locate Service Executable**
+   ```
+   FreeWinBackup.ServiceHost\bin\Release\
+   ├── FreeWinBackup.ServiceHost.exe
+   ├── FreeWinBackup.ServiceHost.exe.config
+   ├── FreeWinBackup.Core.dll
+   └── Newtonsoft.Json.dll
+   ```
+
+### Using MSBuild
+
+```cmd
+cd path\to\FreeWinBackup
+nuget restore FreeWinBackup.sln
+msbuild FreeWinBackup.sln /p:Configuration=Release /p:Platform="Any CPU"
+```
+
+### Building Individual Projects
+
+To build only the service:
+```cmd
+msbuild FreeWinBackup.Core\FreeWinBackup.Core.csproj /p:Configuration=Release
+msbuild FreeWinBackup.ServiceHost\FreeWinBackup.ServiceHost.csproj /p:Configuration=Release
+```
 
 ## Running the Application
 
@@ -107,22 +153,68 @@ Alternatively, you can configure the executable to always run as administrator:
 
 ## Deployment
 
-### Creating a Standalone Package
+### Deploying the WPF Application
 
 1. Build in Release mode
 2. Copy the following files from `FreeWinBackup\bin\Release\`:
    - `FreeWinBackup.exe`
    - `FreeWinBackup.exe.config`
+   - `FreeWinBackup.Core.dll`
    - `Newtonsoft.Json.dll`
-   - Any other DLL files
 
 3. Create a folder structure:
    ```
    FreeWinBackup\
    ├── FreeWinBackup.exe
    ├── FreeWinBackup.exe.config
+   ├── FreeWinBackup.Core.dll
    └── Newtonsoft.Json.dll
    ```
+
+### Deploying the Windows Service
+
+1. Build in Release mode
+2. Copy the following files from `FreeWinBackup.ServiceHost\bin\Release\`:
+   - `FreeWinBackup.ServiceHost.exe`
+   - `FreeWinBackup.ServiceHost.exe.config`
+   - `FreeWinBackup.Core.dll`
+   - `Newtonsoft.Json.dll`
+
+3. Create a folder structure:
+   ```
+   FreeWinBackupService\
+   ├── FreeWinBackup.ServiceHost.exe
+   ├── FreeWinBackup.ServiceHost.exe.config
+   ├── FreeWinBackup.Core.dll
+   └── Newtonsoft.Json.dll
+   ```
+
+4. Install the service using PowerShell (as Administrator):
+   ```powershell
+   cd scripts
+   .\Install-FreeWinBackupService.ps1 -BinaryPath "C:\Path\To\FreeWinBackupService\FreeWinBackup.ServiceHost.exe"
+   ```
+
+### Complete Deployment Package
+
+For a complete deployment that includes both the WPF app and service:
+
+```
+FreeWinBackup-Package\
+├── WPF\
+│   ├── FreeWinBackup.exe
+│   ├── FreeWinBackup.exe.config
+│   ├── FreeWinBackup.Core.dll
+│   └── Newtonsoft.Json.dll
+├── Service\
+│   ├── FreeWinBackup.ServiceHost.exe
+│   ├── FreeWinBackup.ServiceHost.exe.config
+│   ├── FreeWinBackup.Core.dll
+│   └── Newtonsoft.Json.dll
+└── scripts\
+    ├── Install-FreeWinBackupService.ps1
+    └── Uninstall-FreeWinBackupService.ps1
+```
 
 4. Distribute this folder or create an installer using tools like:
    - WiX Toolset
