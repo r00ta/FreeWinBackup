@@ -10,6 +10,23 @@
     <Grid Margin="10">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="10" MaxWidth="600" HorizontalAlignment="Left">
+                <GroupBox Header="Application Settings" Margin="0,0,0,20">
+                    <StackPanel Margin="10" DataContext="{Binding Settings}">
+                        <CheckBox Content="Start automatically when I log in to Windows" 
+                                  IsChecked="{Binding AutoStartEnabled}"
+                                  Margin="0,0,0,10"/>
+                        
+                        <CheckBox Content="Start minimized to system tray" 
+                                  IsChecked="{Binding StartMinimized}"
+                                  Margin="0,0,0,10"/>
+                        
+                        <TextBlock TextWrapping="Wrap" Foreground="Gray" FontStyle="Italic" FontSize="11" Margin="0,5,0,0">
+                            When auto-start is enabled, the application will launch automatically at login.
+                            Combined with "Start minimized", it will run quietly in the system tray.
+                        </TextBlock>
+                    </StackPanel>
+                </GroupBox>
+
                 <GroupBox Header="General Settings" Margin="0,0,0,20">
                     <StackPanel Margin="10" DataContext="{Binding Settings}">
                         <Label Content="Log File Path:"/>

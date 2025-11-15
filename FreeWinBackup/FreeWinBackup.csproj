@@ -99,6 +99,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="UI\TrayManager.cs" />
+    <Compile Include="UI\AutoStartManager.cs" />
+    <Compile Include="UI\SingleInstanceManager.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SchedulesViewModel.cs" />
