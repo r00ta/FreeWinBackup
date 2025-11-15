@@ -44,7 +44,12 @@ jobs:
         run: nuget restore ${{ steps.detect-sln.outputs.SLN_FILE }}
       
       - name: Build solution
-        run: msbuild ${{ steps.detect-sln.outputs.SLN_FILE }} /p:Configuration=Release /p:Platform="Any CPU" /p:OutputPath=bin\Release
+        run: msbuild ${{ steps.detect-sln.outputs.SLN_FILE }} /p:Configuration=Release /p:Platform="Any CPU"
+      
+      - name: "Debug: list all exe files"
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path . -Recurse -Include *.exe | Select-Object FullName, DirectoryName, Name
       
       - name: Verify build output
         id: verify-output
