@@ -7,6 +7,7 @@ A free, open-source Windows backup scheduler application built with WPF and .NET
 - **Flexible Scheduling**: Create backup schedules with daily, weekly, or monthly frequencies
 - **Service Control**: Automatically stop and start Windows services before and after backups
 - **Folder Backup**: Full folder copy with recursive subdirectory support
+- **Retention Policy**: Automatically delete old backups based on configurable retention days
 - **Comprehensive Logging**: Track all backup operations with detailed logs
 - **MVVM Architecture**: Clean separation of concerns for maintainability
 - **JSON/XML Storage**: Configure using JSON or XML for easy backup and portability
@@ -37,7 +38,20 @@ A free, open-source Windows backup scheduler application built with WPF and .NET
    - Choose frequency (Daily, Weekly, or Monthly)
    - Set the run time
    - Optionally, specify Windows services to stop/start
+   - Optionally, enable retention policy and set retention days
 4. Click **Save** to save the schedule
+
+### Retention Policy
+
+The retention policy feature automatically deletes old backup files to save disk space:
+
+- **Enable/Disable**: Toggle retention policy per schedule
+- **Retention Days**: Specify how many days to keep backups (files older than this will be deleted)
+- **Automatic Cleanup**: After each backup completes, old files are automatically removed
+- **Smart Cleanup**: Empty directories are also removed after file deletion
+- **Logging**: All retention actions are logged for audit purposes
+
+**Example**: If you set retention to 7 days, files older than 7 days in the destination folder will be automatically deleted after each backup.
 
 ### Managing Schedules
 

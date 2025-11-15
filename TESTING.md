@@ -117,7 +117,43 @@ For service control testing, identify a non-critical service that can be safely 
 - [ ] Check logs for service control messages
 - [ ] Verify test service is running again
 
-### 5. Logs Page
+### 5. Retention Policy Testing
+
+#### Enable Retention Policy
+- [ ] Create test schedule with valid source/destination
+- [ ] Check "Enable retention policy"
+- [ ] Set retention days to 2
+- [ ] Save schedule
+- [ ] Run backup immediately ("Run Now")
+- [ ] Verify files copied to destination
+
+#### Test Retention Cleanup
+- [ ] Manually modify last write time of some files to 3+ days ago:
+  ```powershell
+  $file = Get-Item "C:\path\to\backup\file.txt"
+  $file.LastWriteTime = (Get-Date).AddDays(-4)
+  ```
+- [ ] Run backup again
+- [ ] Old files (older than 2 days) should be deleted
+- [ ] Check logs for retention policy messages
+- [ ] Verify recent files still exist
+- [ ] Verify empty directories are removed
+
+#### Disable Retention
+- [ ] Edit schedule
+- [ ] Uncheck "Enable retention policy"
+- [ ] Save
+- [ ] Run backup
+- [ ] Verify no files are deleted
+- [ ] No retention messages in logs
+
+#### Validation
+- [ ] Try to save schedule with retention enabled but days = 0
+- [ ] Should fail validation
+- [ ] Try negative retention days
+- [ ] Should fail validation
+
+### 6. Logs Page
 
 #### View Logs
 - [ ] Navigate to Logs page

@@ -29,6 +29,7 @@ msbuild FreeWinBackup.sln /p:Configuration=Release
    - **Destination Folder**: Click "Browse" → Select backup location (e.g., D:\Backups)
    - **Frequency**: Select "Daily"
    - **Run Time**: Enter `02:00` (2 AM)
+   - **Retention Policy**: (Optional) Check "Enable retention policy" and enter `7` days
    - **Enable**: Check the box
 3. Click **"Save"**
 
@@ -91,6 +92,25 @@ If you need to stop a service before backup:
 - SQL Server: `MSSQLSERVER`
 - Print Spooler: `Spooler`
 - Windows Search: `WSearch`
+
+### Retention Policy (Advanced)
+
+Control how long backups are kept to save disk space:
+
+1. Edit a schedule
+2. Check **"Enable retention policy"**
+3. Enter number of days to keep (e.g., `7` for one week)
+4. Save the schedule
+
+**How it works**:
+- After each backup completes, files older than the retention days are deleted
+- Only applies to the destination folder
+- Empty directories are also cleaned up
+- All deletions are logged
+
+**Example**: With 7-day retention, if a file was last modified 8 days ago, it will be deleted after the next backup.
+
+**⚠️ Important**: Set retention days carefully. Deleted files cannot be recovered.
 
 ## Troubleshooting
 
