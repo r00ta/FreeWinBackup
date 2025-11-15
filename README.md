@@ -8,6 +8,8 @@ A free, open-source Windows backup scheduler application built with WPF and .NET
 
 ## Features
 
+- **System Tray Integration**: Minimized operation with status indicator and quick access menu
+- **Auto-Start Support**: Optional automatic launch at Windows logon
 - **Windows Service Mode**: Run backups automatically in the background without user login
 - **Versioned Backups**: Each backup run creates an independent backup set in a timestamped subfolder
 - **Flexible Scheduling**: Create backup schedules with daily, weekly, or monthly frequencies
@@ -18,6 +20,7 @@ A free, open-source Windows backup scheduler application built with WPF and .NET
 - **MVVM Architecture**: Clean separation of concerns for maintainability
 - **JSON/XML Storage**: Configure using JSON or XML for easy backup and portability
 - **User-Friendly UI**: Intuitive WPF interface for managing schedules, viewing logs, and configuring settings
+- **MSI Installer**: Easy installation with WiX Toolset-based installer
 
 ## System Requirements
 
@@ -25,14 +28,93 @@ A free, open-source Windows backup scheduler application built with WPF and .NET
 - .NET Framework 4.8
 - Administrator privileges (for service control and folder access)
 
+## Installation
+
+### Option 1: Using the MSI Installer (Recommended)
+
+1. Download the latest `FreeWinBackup.msi` from the [Releases](../../releases) page
+2. Run the installer (double-click or use command line)
+3. Follow the installation wizard
+
+**Installation Options:**
+- **Auto-Start**: Enable automatic launch at user logon
+- **Desktop Shortcut**: Create a shortcut on the desktop
+
+**Command-Line Installation:**
+```powershell
+# Basic installation
+msiexec /i FreeWinBackup.msi
+
+# Silent installation with auto-start
+msiexec /i FreeWinBackup.msi /qn AUTOSTART=1
+
+# Installation with desktop shortcut
+msiexec /i FreeWinBackup.msi /qn ADDDESKTOPSHORTCUT=1
+```
+
+**Uninstallation:**
+```powershell
+# Via Control Panel: Programs and Features > FreeWinBackup > Uninstall
+# Or via command line:
+msiexec /x FreeWinBackup.msi /qn
+```
+
+For detailed installer documentation, see [Installer/README.md](Installer/README.md).
+
+### Option 2: Manual Installation
+
+1. Build the solution in Visual Studio (Release configuration)
+2. Copy files from `FreeWinBackup\bin\Release\` to your preferred location
+3. Run `FreeWinBackup.exe`
+
 ## Building the Application
+
+### Prerequisites
+- Visual Studio 2019 or later
+- .NET Framework 4.8 SDK
+- WiX Toolset v3.11 or later (optional, for building the installer)
+
+### Build Steps
 
 1. Open `FreeWinBackup.sln` in Visual Studio 2019 or later
 2. Restore NuGet packages (Newtonsoft.Json)
 3. Build the solution (F6)
 4. Run the application (F5)
 
+### Building the Installer
+
+See [Installer/README.md](Installer/README.md) for detailed instructions on building the MSI installer.
+
 ## Usage
+
+### System Tray Icon
+
+FreeWinBackup runs with a system tray icon that provides quick access and status information:
+
+- **Blue Icon**: Idle - No backup currently running
+- **Green Icon**: Active - Backup in progress
+- **Red Icon**: Error - Last backup encountered an error
+
+**Tray Icon Menu:**
+- **Open FreeWinBackup**: Show the main application window
+- **Run Backup Now**: Manually trigger a backup operation
+- **Exit**: Close the application
+
+**Tips:**
+- Double-click the tray icon to open the main window
+- Right-click for the context menu
+- The application can start minimized to the tray (see Settings)
+
+### Auto-Start Configuration
+
+Configure the application to start automatically when you log in to Windows:
+
+1. Navigate to the **Settings** page
+2. Check **"Start automatically when I log in to Windows"**
+3. Optionally, check **"Start minimized to system tray"** to have it run quietly in the background
+4. Click **Save Settings**
+
+When auto-start is enabled, FreeWinBackup adds a registry entry to launch at login. This can be configured during installation or changed later in Settings.
 
 ### Creating a Backup Schedule
 
@@ -102,8 +184,19 @@ Navigate to the **Logs** page to view a history of all backup operations, includ
 ### Settings
 
 Configure application settings on the **Settings** page:
+
+**Application Settings:**
+- **Start automatically when I log in to Windows**: Enables/disables auto-start at login
+- **Start minimized to system tray**: When enabled, application starts minimized to tray instead of showing the main window
+
+**General Settings:**
 - Log retention period
+- Log file path
+
+**Email Notifications:**
 - Email notification settings (future enhancement)
+- SMTP server configuration
+- Email recipient address
 
 ## Windows Service Mode
 

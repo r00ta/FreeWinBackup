@@ -1,6 +1,7 @@
 using System.Windows.Input;
 using FreeWinBackup.Core.Models;
 using FreeWinBackup.Core.Services;
+using FreeWinBackup.UI;
 
 namespace FreeWinBackup.ViewModels
 {
@@ -8,6 +9,7 @@ namespace FreeWinBackup.ViewModels
     {
         private readonly IStorageService _storageService;
         private ScheduleSettings _settings;
+        private bool _previousAutoStartState;
 
         public ScheduleSettings Settings
         {
@@ -27,10 +29,48 @@ namespace FreeWinBackup.ViewModels
         private void LoadSettings()
         {
             Settings = _storageService.LoadSettings();
+            _previousAutoStartState = Settings.AutoStartEnabled;
+            
+            // Sync with actual registry state
+            bool registryAutoStart = AutoStartManager.IsAutoStartEnabled();
+            if (Settings.AutoStartEnabled != registryAutoStart)
+            {
+                Settings.AutoStartEnabled = registryAutoStart;
+            }
         }
 
         private void SaveSettings()
         {
+            // Handle auto-start changes
+            if (Settings.AutoStartEnabled != _previousAutoStartState)
+            {
+                if (Settings.AutoStartEnabled)
+                {
+                    if (!AutoStartManager.EnableAutoStart())
+                    {
+                        System.Windows.MessageBox.Show(
+                            "Failed to enable auto-start. Please check permissions.",
+                            "Settings",
+                            System.Windows.MessageBoxButton.OK,
+                            System.Windows.MessageBoxImage.Warning);
+                        Settings.AutoStartEnabled = false;
+                    }
+                }
+                else
+                {
+                    if (!AutoStartManager.DisableAutoStart())
+                    {
+                        System.Windows.MessageBox.Show(
+                            "Failed to disable auto-start. Please check permissions.",
+                            "Settings",
+                            System.Windows.MessageBoxButton.OK,
+                            System.Windows.MessageBoxImage.Warning);
+                        Settings.AutoStartEnabled = true;
+                    }
+                }
+                _previousAutoStartState = Settings.AutoStartEnabled;
+            }
+
             _storageService.SaveSettings(Settings);
             System.Windows.MessageBox.Show("Settings saved successfully.", "Settings", 
                 System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);

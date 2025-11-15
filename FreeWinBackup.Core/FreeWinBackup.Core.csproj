@@ -55,6 +55,7 @@
     <Compile Include="Services\JsonStorageService.cs" />
     <Compile Include="Services\XmlStorageService.cs" />
     <Compile Include="Services\BackupService.cs" />
+    <Compile Include="Services\BackupStatusEventArgs.cs" />
     <Compile Include="Services\SchedulerService.cs" />
     <Compile Include="Services\ServiceControlService.cs" />
     <Compile Include="Services\LoggingService.cs" />

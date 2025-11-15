@@ -10,12 +10,16 @@ namespace FreeWinBackup.Core.Models
         public bool EnableEmailNotifications { get; set; }
         public string SmtpServer { get; set; }
         public string EmailTo { get; set; }
+        public bool AutoStartEnabled { get; set; }
+        public bool StartMinimized { get; set; }
 
         public ScheduleSettings()
         {
             Schedules = new List<BackupSchedule>();
             MaxLogDays = 30;
             EnableEmailNotifications = false;
+            AutoStartEnabled = false;
+            StartMinimized = true;
         }
     }
 }
