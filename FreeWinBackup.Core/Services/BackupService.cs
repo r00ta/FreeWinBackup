@@ -12,12 +12,22 @@ namespace FreeWinBackup.Core.Services
         private readonly ServiceControlService _serviceControl;
         private readonly RetentionService _retentionService;
 
+        /// <summary>
+        /// Event raised when backup status changes
+        /// </summary>
+        public event EventHandler<BackupStatusEventArgs> BackupStatusChanged;
+
         public BackupService(IStorageService storageService)
         {
             _storageService = storageService;
             _loggingService = new LoggingService();
             _serviceControl = new ServiceControlService();
             _retentionService = new RetentionService();
+        }
+
+        protected virtual void OnBackupStatusChanged(BackupStatusEventArgs e)
+        {
+            BackupStatusChanged?.Invoke(this, e);
         }
 
         public void RunBackup(BackupSchedule schedule)
@@ -27,6 +37,13 @@ namespace FreeWinBackup.Core.Services
             
             try
             {
+                OnBackupStatusChanged(new BackupStatusEventArgs
+                {
+                    ScheduleName = schedule.Name,
+                    Status = BackupStatus.Started,
+                    Message = $"Starting backup: {schedule.Name}"
+                });
+
                 _loggingService.Log(new LogEntry
                 {
                     ScheduleId = schedule.Id,
@@ -62,6 +79,13 @@ namespace FreeWinBackup.Core.Services
                     _storageService.SaveSettings(settings);
                 }
 
+                OnBackupStatusChanged(new BackupStatusEventArgs
+                {
+                    ScheduleName = schedule.Name,
+                    Status = BackupStatus.Completed,
+                    Message = $"Backup completed: {schedule.Name} to {backupFolderName}"
+                });
+
                 _loggingService.Log(new LogEntry
                 {
                     ScheduleId = schedule.Id,
@@ -84,6 +108,14 @@ namespace FreeWinBackup.Core.Services
                     _serviceControl.StartServices(schedule.ServicesToStop, schedule.Id, schedule.Name);
                 }
                 catch { }
+
+                OnBackupStatusChanged(new BackupStatusEventArgs
+                {
+                    ScheduleName = schedule.Name,
+                    Status = BackupStatus.Failed,
+                    Message = $"Backup failed: {ex.Message}",
+                    Error = ex
+                });
 
                 _loggingService.Log(new LogEntry
                 {

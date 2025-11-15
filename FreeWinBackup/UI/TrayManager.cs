@@ -99,6 +99,28 @@ namespace FreeWinBackup.UI
         }
 
         /// <summary>
+        /// Handle backup status change events from BackupService
+        /// </summary>
+        public void OnBackupStatusChanged(object sender, BackupStatusEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case BackupStatus.Started:
+                case BackupStatus.InProgress:
+                    UpdateIcon(TrayIconState.Active);
+                    break;
+                case BackupStatus.Completed:
+                    UpdateIcon(TrayIconState.Idle);
+                    ShowBalloonTip("Backup Completed", e.Message, ToolTipIcon.Info);
+                    break;
+                case BackupStatus.Failed:
+                    UpdateIcon(TrayIconState.Error);
+                    ShowBalloonTip("Backup Failed", e.Message, ToolTipIcon.Error);
+                    break;
+            }
+        }
+
+        /// <summary>
         /// Creates a simple colored icon (placeholder until actual icon files are provided)
         /// </summary>
         private Icon CreateColoredIcon(Color color)

@@ -92,6 +92,12 @@ namespace FreeWinBackup
 
         private void ExitApplication()
         {
+            // Allow the main window to close
+            if (_mainWindow != null)
+            {
+                _mainWindow.AllowClose = true;
+            }
+            
             // Clean up and exit
             Shutdown();
         }

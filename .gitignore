@@ -185,3 +185,9 @@ tools/**
 *.odx.cs
 *.xsd.cs
 *.exe
+
+# WiX Toolset
+*.wixobj
+*.wixpdb
+*.msi
+*.msm
