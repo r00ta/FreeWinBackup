@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
-using FreeWinBackup.Models;
-using FreeWinBackup.Services;
+using FreeWinBackup.Core.Models;
+using FreeWinBackup.Core.Services;
 
 namespace FreeWinBackup.ViewModels
 {

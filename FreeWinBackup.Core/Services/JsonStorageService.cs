@@ -1,15 +1,15 @@
 using System;
 using System.IO;
-using System.Xml.Serialization;
-using FreeWinBackup.Models;
+using FreeWinBackup.Core.Models;
+using Newtonsoft.Json;
 
-namespace FreeWinBackup.Services
+namespace FreeWinBackup.Core.Services
 {
-    public class XmlStorageService : IStorageService
+    public class JsonStorageService : IStorageService
     {
         private readonly string _settingsPath;
 
-        public XmlStorageService()
+        public JsonStorageService()
         {
             var appDataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -20,7 +20,7 @@ namespace FreeWinBackup.Services
                 Directory.CreateDirectory(appDataPath);
             }
 
-            _settingsPath = Path.Combine(appDataPath, "settings.xml");
+            _settingsPath = Path.Combine(appDataPath, "settings.json");
         }
 
         public ScheduleSettings LoadSettings()
@@ -34,11 +34,8 @@ namespace FreeWinBackup.Services
 
             try
             {
-                var serializer = new XmlSerializer(typeof(ScheduleSettings));
-                using (var reader = new StreamReader(_settingsPath))
-                {
-                    return (ScheduleSettings)serializer.Deserialize(reader);
-                }
+                var json = File.ReadAllText(_settingsPath);
+                return JsonConvert.DeserializeObject<ScheduleSettings>(json) ?? new ScheduleSettings();
             }
             catch
             {
@@ -48,11 +45,8 @@ namespace FreeWinBackup.Services
 
         public void SaveSettings(ScheduleSettings settings)
         {
-            var serializer = new XmlSerializer(typeof(ScheduleSettings));
-            using (var writer = new StreamWriter(_settingsPath))
-            {
-                serializer.Serialize(writer, settings);
-            }
+            var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+            File.WriteAllText(_settingsPath, json);
         }
     }
 }

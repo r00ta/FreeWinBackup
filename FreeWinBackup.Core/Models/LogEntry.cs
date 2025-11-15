@@ -1,6 +1,6 @@
 using System;
 
-namespace FreeWinBackup.Models
+namespace FreeWinBackup.Core.Models
 {
     public class LogEntry
     {

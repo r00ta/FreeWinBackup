@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace FreeWinBackup.Models
+namespace FreeWinBackup.Core.Models
 {
     public class BackupSchedule
     {

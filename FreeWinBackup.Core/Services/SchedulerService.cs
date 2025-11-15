@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using FreeWinBackup.Models;
+using FreeWinBackup.Core.Models;
 
-namespace FreeWinBackup.Services
+namespace FreeWinBackup.Core.Services
 {
     public class SchedulerService
     {

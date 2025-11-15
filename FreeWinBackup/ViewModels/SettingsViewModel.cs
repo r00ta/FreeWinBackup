@@ -1,6 +1,6 @@
 using System.Windows.Input;
-using FreeWinBackup.Models;
-using FreeWinBackup.Services;
+using FreeWinBackup.Core.Models;
+using FreeWinBackup.Core.Services;
 
 namespace FreeWinBackup.ViewModels
 {

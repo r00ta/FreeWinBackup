@@ -63,6 +63,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FreeWinBackup.Core\FreeWinBackup.Core.csproj">
+      <Project>{B2C3D4E5-F6A7-4B8C-9D0E-1F2A3B4C5D6E}</Project>
+      <Name>FreeWinBackup.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -93,10 +99,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\BackupSchedule.cs" />
-    <Compile Include="Models\FrequencyType.cs" />
-    <Compile Include="Models\LogEntry.cs" />
-    <Compile Include="Models\ScheduleSettings.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SchedulesViewModel.cs" />
@@ -112,14 +114,6 @@
     <Compile Include="Views\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Services\IStorageService.cs" />
-    <Compile Include="Services\JsonStorageService.cs" />
-    <Compile Include="Services\XmlStorageService.cs" />
-    <Compile Include="Services\BackupService.cs" />
-    <Compile Include="Services\SchedulerService.cs" />
-    <Compile Include="Services\ServiceControlService.cs" />
-    <Compile Include="Services\LoggingService.cs" />
-    <Compile Include="Services\RetentionService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
