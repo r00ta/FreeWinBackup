@@ -63,8 +63,8 @@ namespace FreeWinBackup.ViewModels
             CancelEditCommand = new RelayCommand(_ => CancelEdit());
             ToggleEnabledCommand = new RelayCommand(_ => ToggleEnabled(), _ => SelectedSchedule != null);
             RunNowCommand = new RelayCommand(_ => RunNow(), _ => SelectedSchedule != null);
-            BrowseSourceCommand = new RelayCommand(_ => BrowseSource());
-            BrowseDestinationCommand = new RelayCommand(_ => BrowseDestination());
+            BrowseSourceCommand = new RelayCommand(_ => BrowseSource(), _ => IsEditing);
+            BrowseDestinationCommand = new RelayCommand(_ => BrowseDestination(), _ => IsEditing);
 
             LoadSchedules();
             _schedulerService.Start();
@@ -203,6 +203,8 @@ namespace FreeWinBackup.ViewModels
 
         private void BrowseSource()
         {
+            if (EditingSchedule == null) return;
+            
             var dialog = new System.Windows.Forms.FolderBrowserDialog();
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -213,6 +215,8 @@ namespace FreeWinBackup.ViewModels
 
         private void BrowseDestination()
         {
+            if (EditingSchedule == null) return;
+            
             var dialog = new System.Windows.Forms.FolderBrowserDialog();
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
