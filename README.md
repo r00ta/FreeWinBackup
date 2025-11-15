@@ -103,6 +103,46 @@ Configuration files are stored in:
 
 Licensed under the Apache License 2.0. See [LICENSE](LICENSE) file for details.
 
+## Release Process
+
+The project uses GitHub Actions to automate the release process. When a version tag is pushed, the workflow automatically builds the application and creates a GitHub Release with the compiled binaries.
+
+### Creating a Release
+
+1. **Tag the release**: Create an annotated tag with the version number (format: `vX.Y.Z`)
+   ```bash
+   git tag -a v0.1.0 -m "First release"
+   ```
+
+2. **Push the tag**: Push the tag to GitHub to trigger the release workflow
+   ```bash
+   git push origin v0.1.0
+   ```
+
+3. **Automated build**: The GitHub Actions workflow will:
+   - Build the solution in Release configuration using MSBuild
+   - Package all necessary files (executables, DLLs, configuration files)
+   - Create a ZIP archive named `FreeWinBackup-vX.Y.Z.zip`
+   - Publish a GitHub Release with the archive attached
+   - Generate release notes from commit messages since the previous tag
+
+4. **Download**: Once the workflow completes, the release will be available on the [Releases page](../../releases) with the packaged application ready to download.
+
+### Release Artifacts
+
+The release ZIP file contains:
+- `FreeWinBackup.exe` - Main application executable
+- Required DLL dependencies (including Newtonsoft.Json)
+- Configuration files (App.config)
+- Debug symbols (PDB files) for troubleshooting
+
+### Version Numbering
+
+Follow [Semantic Versioning](https://semver.org/):
+- **Major version** (vX.0.0): Breaking changes or major feature additions
+- **Minor version** (v0.X.0): New features, backward-compatible
+- **Patch version** (v0.0.X): Bug fixes and minor improvements
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
