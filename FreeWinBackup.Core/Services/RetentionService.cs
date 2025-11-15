@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
-using FreeWinBackup.Models;
+using FreeWinBackup.Core.Models;
 
-namespace FreeWinBackup.Services
+namespace FreeWinBackup.Core.Services
 {
     public class RetentionService
     {

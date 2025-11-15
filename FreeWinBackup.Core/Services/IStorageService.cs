@@ -1,6 +1,6 @@
-using FreeWinBackup.Models;
+using FreeWinBackup.Core.Models;
 
-namespace FreeWinBackup.Services
+namespace FreeWinBackup.Core.Services
 {
     public interface IStorageService
     {

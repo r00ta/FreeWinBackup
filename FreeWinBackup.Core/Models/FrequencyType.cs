@@ -1,4 +1,4 @@
-namespace FreeWinBackup.Models
+namespace FreeWinBackup.Core.Models
 {
     public enum FrequencyType
     {
