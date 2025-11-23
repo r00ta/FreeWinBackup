@@ -1,5 +1,7 @@
 # FreeWinBackup
 
+![Build Status](https://github.com/r00ta/FreeWinBackup/actions/workflows/build.yml/badge.svg)
+
 A free, open-source Windows backup scheduler application built with WPF and .NET Framework 4.8. Designed for Windows Server 2008 R2 and later versions.
 
 **Available in two modes:**
@@ -69,17 +71,31 @@ For detailed installer documentation, see [Installer/README.md](Installer/README
 
 ## Building the Application
 
+> **📖 For comprehensive build instructions, troubleshooting, and CI/CD information, see [BUILD.md](BUILD.md)**
+
+### Quick Build
+
+```powershell
+# Clone and build
+git clone https://github.com/r00ta/FreeWinBackup.git
+cd FreeWinBackup
+nuget restore FreeWinBackup.sln
+msbuild FreeWinBackup.sln /p:Configuration=Release /p:Platform="Any CPU"
+```
+
 ### Prerequisites
 - Visual Studio 2019 or later
 - .NET Framework 4.8 SDK
 - WiX Toolset v3.11 or later (optional, for building the installer)
 
-### Build Steps
+### Visual Studio Build
 
-1. Open `FreeWinBackup.sln` in Visual Studio 2019 or later
-2. Restore NuGet packages (Newtonsoft.Json)
+1. Open `FreeWinBackup.sln` in Visual Studio
+2. Restore NuGet packages (automatic)
 3. Build the solution (F6)
 4. Run the application (F5)
+
+For detailed build instructions, troubleshooting, and CI/CD information, see **[BUILD.md](BUILD.md)**.
 
 ### Building the Installer
 
