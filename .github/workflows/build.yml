@@ -1,0 +1,144 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'copilot/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    name: Build (Windows)
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+      
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+      
+      - name: Restore NuGet packages
+        run: nuget restore FreeWinBackup.sln
+      
+      - name: Build solution (excluding installer)
+        run: |
+          msbuild FreeWinBackup.Core\FreeWinBackup.Core.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /v:minimal
+          msbuild FreeWinBackup\FreeWinBackup.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /v:minimal
+          msbuild FreeWinBackup.ServiceHost\FreeWinBackup.ServiceHost.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /v:minimal
+      
+      - name: Verify build outputs
+        shell: pwsh
+        run: |
+          Write-Host "=== FreeWinBackup.Core Build Output ==="
+          Get-ChildItem -Path FreeWinBackup.Core\bin\${{ matrix.configuration }} -Recurse | Select-Object Name, Length
+          
+          Write-Host "`n=== FreeWinBackup Build Output ==="
+          Get-ChildItem -Path FreeWinBackup\bin\${{ matrix.configuration }} -Recurse | Select-Object Name, Length
+          
+          Write-Host "`n=== FreeWinBackup.ServiceHost Build Output ==="
+          Get-ChildItem -Path FreeWinBackup.ServiceHost\bin\${{ matrix.configuration }} -Recurse | Select-Object Name, Length
+          
+          # Check that main executables exist
+          if (-not (Test-Path "FreeWinBackup\bin\${{ matrix.configuration }}\FreeWinBackup.exe")) {
+            Write-Error "FreeWinBackup.exe not found"
+            exit 1
+          }
+          
+          if (-not (Test-Path "FreeWinBackup.ServiceHost\bin\${{ matrix.configuration }}\FreeWinBackup.ServiceHost.exe")) {
+            Write-Error "FreeWinBackup.ServiceHost.exe not found"
+            exit 1
+          }
+          
+          if (-not (Test-Path "FreeWinBackup.Core\bin\${{ matrix.configuration }}\FreeWinBackup.Core.dll")) {
+            Write-Error "FreeWinBackup.Core.dll not found"
+            exit 1
+          }
+          
+          Write-Host "`nAll build outputs verified successfully!"
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: matrix.configuration == 'Release'
+        with:
+          name: FreeWinBackup-${{ matrix.configuration }}
+          path: |
+            FreeWinBackup/bin/${{ matrix.configuration }}/
+            FreeWinBackup.ServiceHost/bin/${{ matrix.configuration }}/
+            FreeWinBackup.Core/bin/${{ matrix.configuration }}/
+          retention-days: 7
+
+  build-with-installer:
+    name: Build with WiX Installer
+    runs-on: windows-latest
+    needs: build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+      
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+      
+      - name: Install WiX Toolset
+        shell: pwsh
+        run: |
+          # Download and install WiX 3.11
+          $wixUrl = "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe"
+          $wixInstaller = "$env:TEMP\wix311.exe"
+          
+          Write-Host "Downloading WiX Toolset..."
+          Invoke-WebRequest -Uri $wixUrl -OutFile $wixInstaller
+          
+          Write-Host "Installing WiX Toolset..."
+          Start-Process -FilePath $wixInstaller -ArgumentList "/install", "/quiet", "/norestart" -Wait
+          
+          # Verify installation
+          $wixPath = "${env:ProgramFiles(x86)}\WiX Toolset v3.11\bin"
+          if (Test-Path $wixPath) {
+            Write-Host "WiX Toolset installed successfully at: $wixPath"
+          } else {
+            Write-Error "WiX Toolset installation failed"
+            exit 1
+          }
+      
+      - name: Restore NuGet packages
+        run: nuget restore FreeWinBackup.sln
+      
+      - name: Build full solution with installer
+        run: msbuild FreeWinBackup.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
+      
+      - name: Verify installer output
+        shell: pwsh
+        run: |
+          $msiPath = Get-ChildItem -Path . -Recurse -Filter "*.msi" | Select-Object -First 1
+          if ($msiPath) {
+            Write-Host "Installer built successfully: $($msiPath.FullName)"
+            Write-Host "Size: $($msiPath.Length) bytes"
+          } else {
+            Write-Warning "No MSI installer found (this may be expected if installer project is not included in solution)"
+          }
+      
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: FreeWinBackup-Installer
+          path: |
+            **/*.msi
+          retention-days: 7
+          if-no-files-found: warn
