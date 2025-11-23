@@ -12,7 +12,7 @@ Write-Host ""
 
 # Step 1: Build the main solution
 Write-Host "Building solution: $SolutionFile" -ForegroundColor Yellow
-& msbuild $SolutionFile /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
+& dotnet build $SolutionFile -c Release -v minimal
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Solution build failed!"
@@ -24,7 +24,7 @@ Write-Host ""
 
 # Step 2: Build the installer
 Write-Host "Building installer: $InstallerProject" -ForegroundColor Yellow
-& msbuild $InstallerProject /p:Configuration=Release /v:minimal
+& dotnet msbuild $InstallerProject -p:Configuration=Release -v:minimal
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Installer build failed!"

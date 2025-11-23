@@ -6,17 +6,20 @@ This directory contains the WiX Toolset installer project for FreeWinBackup.
 
 To build the installer, you need:
 
-1. **WiX Toolset v3.11 or later**
+1. **.NET SDK 6.0 or later**
+   - Provides `dotnet build` / `dotnet msbuild`
+   - Download from: https://dotnet.microsoft.com/download
+
+2. **WiX Toolset v3.11 or later**
    - Download from: https://wixtoolset.org/releases/
    - Install the WiX Toolset build tools
    - Add WiX bin directory to PATH (usually `C:\Program Files (x86)\WiX Toolset v3.11\bin`)
 
-2. **.NET Framework 4.8 Developer Pack**
+3. **.NET Framework 4.8 Developer Pack**
    - Download from: https://dotnet.microsoft.com/download/dotnet-framework/net48
    - Required to build the main application
 
-3. **MSBuild** (included with Visual Studio 2019 or later)
-   - Alternatively, install Build Tools for Visual Studio
+> You no longer need the full Visual Studio MSBuild toolchain; the scripts rely on the .NET SDK.
 
 ## Building the Installer
 
@@ -27,16 +30,16 @@ To build the installer, you need:
 3. Right-click on the `FreeWinBackup.Installer` project and select **Build**
 4. The MSI will be created in `Installer\bin\Release\FreeWinBackup.msi`
 
-### Option 2: Using Command Line (MSBuild)
+### Option 2: Using Command Line (dotnet CLI)
 
 ```powershell
 # From the repository root directory
 
 # Build the main application first
-msbuild FreeWinBackup.sln /p:Configuration=Release /p:Platform="Any CPU"
+dotnet build FreeWinBackup.sln -c Release
 
 # Build the installer
-msbuild Installer\FreeWinBackup.Installer.wixproj /p:Configuration=Release
+dotnet msbuild Installer\FreeWinBackup.Installer.wixproj -p:Configuration=Release
 ```
 
 The installer MSI will be created at: `Installer\bin\Release\FreeWinBackup.msi`
@@ -64,13 +67,13 @@ msiexec /i FreeWinBackup.msi
 
 ### Installation with Auto-Start
 
-Enable automatic startup at user logon:
+Automatic startup at user logon is enabled by default. The installer adds a Run key at `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` that launches FreeWinBackup minimized when the user logs in.
+
+To opt out during installation:
 
 ```powershell
-msiexec /i FreeWinBackup.msi /qn AUTOSTART=1
+msiexec /i FreeWinBackup.msi /qn AUTOSTART=0
 ```
-
-This adds a registry entry to `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` that launches FreeWinBackup minimized when the user logs in.
 
 ### Installation with Desktop Shortcut
 
@@ -86,46 +89,29 @@ msiexec /i FreeWinBackup.msi /qn ADDDESKTOPSHORTCUT=1
 msiexec /i FreeWinBackup.msi /qn AUTOSTART=1 ADDDESKTOPSHORTCUT=1
 ```
 
+### Property Summary
+
+| Property | Description | Default |
+|----------|-------------|---------|
+| `AUTOSTART=1` | Run FreeWinBackup at user logon | On |
+| `ADDDESKTOPSHORTCUT=1` | Create a desktop shortcut | Off |
+
 ## Uninstallation
 
-### Using Control Panel
+- **Settings → Apps → Installed Apps** (Windows 11) or **Control Panel → Programs and Features** (Windows 10).
+- Or run `msiexec /x FreeWinBackup.msi /qn` for a silent uninstall.
 
-1. Open **Control Panel** > **Programs and Features**
-2. Select **FreeWinBackup** from the list
-3. Click **Uninstall**
-
-### Using Command Line
-
-```powershell
-# Find the product code
-wmic product where "name='FreeWinBackup'" get IdentifyingNumber
-
-# Uninstall using the product code
-msiexec /x {PRODUCT-CODE-GUID} /qn
-
-# Or uninstall using the MSI file
-msiexec /x FreeWinBackup.msi /qn
-```
+The uninstaller removes shortcuts and the Run key but leaves user data under `%AppData%\FreeWinBackup` intact.
 
 ## Versioning
 
-The installer version is defined in `Product.wxs`:
-
-```xml
-<?define Version="1.0.0.0" ?>
-```
-
-**Important:** When releasing a new version:
-
-1. Update the version number in `Product.wxs`
-2. Update the version in `AssemblyInfo.cs` files to match
-3. Do NOT change the `UpgradeCode` GUID (this ensures upgrade functionality works)
-4. The `Product Id` is set to `*` which generates a new GUID for each build
+- Update the version constant in `Installer/Product.wxs` (`<?define Version="x.y.z.w" ?>`).
+- Keep the existing `UpgradeCode` to support upgrades.
+- Ensure the application assemblies are versioned to match the MSI when publishing.
 
 ## Code Signing (Optional)
 
 To sign the MSI for distribution:
-
 1. **Obtain a code signing certificate**
    - From a Certificate Authority (CA) like DigiCert, Sectigo, etc.
    - Or create a self-signed certificate for internal use

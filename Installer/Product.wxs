@@ -8,7 +8,7 @@
   <?define UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890" ?>
   
   <!-- Source directory where built application binaries are located -->
-  <?define SourceDir="..\FreeWinBackup\bin\Release" ?>
+  <?define SourceDir="..\FreeWinBackup\bin\Release\net48" ?>
   
   <Product Id="*" 
            Name="$(var.ProductName)" 
@@ -32,7 +32,7 @@
     <Property Id="INSTALL_SCOPE" Value="perUser" />
     
     <!-- Properties for optional features -->
-    <Property Id="AUTOSTART" Value="0" />
+    <Property Id="AUTOSTART" Value="1" />
     <Property Id="ADDDESKTOPSHORTCUT" Value="0" />
     
     <!-- Main application directory -->

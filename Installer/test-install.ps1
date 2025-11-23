@@ -76,8 +76,8 @@ if (-not $SkipBuild) {
         exit 1
     }
     
-    # Build using MSBuild
-    & msbuild $solutionFile /p:Configuration=Release /p:Platform="Any CPU" /v:minimal /nologo
+    # Build using dotnet CLI
+    & dotnet build $solutionFile -c Release -v minimal -nologo
     
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Solution build failed with exit code $LASTEXITCODE"
@@ -90,7 +90,7 @@ if (-not $SkipBuild) {
     Write-Host "Step 2: Building Installer" -ForegroundColor Cyan
     Write-Host "Building WiX installer project..."
     
-    & msbuild $InstallerProject /p:Configuration=Release /v:minimal /nologo
+    & dotnet msbuild $InstallerProject -p:Configuration=Release -v:minimal -nologo
     
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Installer build failed with exit code $LASTEXITCODE"

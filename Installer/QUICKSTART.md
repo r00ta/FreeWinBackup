@@ -20,11 +20,11 @@ Download the latest `FreeWinBackup.msi` installer from the [Releases](https://gi
 Open PowerShell or Command Prompt as Administrator and run:
 
 ```powershell
-# Basic silent installation
+# Basic silent installation (auto-start enabled by default)
 msiexec /i FreeWinBackup.msi /qn
 
-# Install with auto-start at login
-msiexec /i FreeWinBackup.msi /qn AUTOSTART=1
+# Install without auto-start
+msiexec /i FreeWinBackup.msi /qn AUTOSTART=0
 
 # Install with desktop shortcut
 msiexec /i FreeWinBackup.msi /qn ADDDESKTOPSHORTCUT=1
@@ -37,7 +37,7 @@ msiexec /i FreeWinBackup.msi /qn AUTOSTART=1 ADDDESKTOPSHORTCUT=1
 
 | Property | Description | Default |
 |----------|-------------|---------|
-| `AUTOSTART=1` | Start automatically at Windows login | Off |
+| `AUTOSTART=1` | Start automatically at Windows login | On |
 | `ADDDESKTOPSHORTCUT=1` | Create desktop shortcut | Off |
 
 ## First Launch
@@ -51,7 +51,7 @@ After installation:
 
 2. **Configure Settings** (optional):
    - Navigate to the Settings page
-   - Enable "Start automatically when I log in to Windows" if you didn't during install
+   - Disable "Start automatically when I log in to Windows" if you prefer to launch manually
    - Enable "Start minimized to system tray" for quiet background operation
 
 3. **Create Your First Backup**:
@@ -61,6 +61,8 @@ After installation:
    - Click "Save"
 
 ## Auto-Start Behavior
+
+Auto-start is enabled immediately after installation unless you pass `AUTOSTART=0`.
 
 When **auto-start** is enabled:
 - FreeWinBackup launches automatically when you log in to Windows
