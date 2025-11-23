@@ -48,14 +48,20 @@ jobs:
           Copy-Item "$outputDir\FreeWinBackup.Setup.pdb" $packageDir -ErrorAction SilentlyContinue
           Copy-Item "$outputDir\payload" $packageDir\payload -Recurse
 
-          $zipPath = "FreeWinBackup.Setup.zip"
+          $tag = $env:GITHUB_REF_NAME
+          if ([string]::IsNullOrWhiteSpace($tag)) { $tag = (Get-Date -Format 'yyyyMMddHHmmss') }
+
+          $exePath = Join-Path $PWD $packageDir "FreeWinBackup.Setup.exe"
+
+          $zipName = "FreeWinBackup.Setup-$tag.zip"
+          $zipPath = Join-Path $PWD $zipName
           if (Test-Path $zipPath) {
             Remove-Item $zipPath -Force
           }
           Compress-Archive -Path (Join-Path $packageDir '*') -DestinationPath $zipPath
 
-          "SETUP_EXE=$outputDir\FreeWinBackup.Setup.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "SETUP_ZIP=$PWD\$zipPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SETUP_EXE=$exePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SETUP_ZIP=$zipPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
