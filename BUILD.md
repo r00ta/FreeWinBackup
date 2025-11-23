@@ -79,13 +79,17 @@ The solution supports two build configurations:
 ### Option 2: Using MSBuild (Command Line)
 
 1. **Open Developer Command Prompt for Visual Studio**
-   - Start Menu > Visual Studio 2019 > Developer Command Prompt for VS 2019
-   - Or open PowerShell/CMD and run:
+   - Start Menu > Visual Studio 2019/2022 > Developer Command Prompt
+   - Or open PowerShell/CMD and run (adjust path for your VS version and edition):
      ```powershell
-     # For VS 2019
-     "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat"
-     # For VS 2022  
-     "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
+     # For VS 2019 Community
+     & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat"
+     
+     # For VS 2022 Community
+     & "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
+     
+     # For VS 2019 Professional
+     & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\Tools\VsDevCmd.bat"
      ```
 
 2. **Navigate to the Solution Directory**
@@ -415,7 +419,7 @@ After building, verify your build was successful:
 - [ ] `FreeWinBackup\bin\Release\FreeWinBackup.exe` exists
 - [ ] `FreeWinBackup.Core\bin\Release\FreeWinBackup.Core.dll` exists  
 - [ ] `FreeWinBackup.ServiceHost\bin\Release\FreeWinBackup.ServiceHost.exe` exists
-- [ ] `packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll` exists or Newtonsoft.Json.dll in bin folders
+- [ ] `packages\Newtonsoft.Json.*\lib\net45\Newtonsoft.Json.dll` exists (or in bin folders)
 - [ ] Build output shows "0 Error(s)"
 - [ ] Application launches without errors (F5 or Ctrl+F5)
 
