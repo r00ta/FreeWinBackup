@@ -83,7 +83,7 @@ FreeWinBackup/
 ├── TESTING.md                         # Test plan
 ├── LICENSE                            # Apache 2.0 license
 ├── .gitignore                         # Git ignore rules
-└── FreeWinBackup/                     # Main project
+├── FreeWinBackup/                     # Main project
     ├── FreeWinBackup.csproj          # Project file
     ├── App.config                     # Application configuration
     ├── App.xaml                       # Application definition
@@ -120,11 +120,17 @@ FreeWinBackup/
     │   ├── ServiceControlService.cs
     │   └── XmlStorageService.cs
     └── Properties/                    # Assembly info (5 files)
-        ├── AssemblyInfo.cs
-        ├── Resources.Designer.cs
-        ├── Resources.resx
-        ├── Settings.Designer.cs
-        └── Settings.settings
+      ├── AssemblyInfo.cs
+      ├── Resources.Designer.cs
+      ├── Resources.resx
+      ├── Settings.Designer.cs
+      └── Settings.settings
+  └── FreeWinBackup.Setup/               # WinForms setup application
+    ├── FreeWinBackup.Setup.csproj     # Project file (net48 WinForms)
+    ├── Program.cs                     # Entry point
+    ├── MainForm.cs                    # Installer logic
+    ├── MainForm.Designer.cs           # Generated UI layout
+    └── Properties/                    # WinForms resources
 ```
 
 **Total Files**: 40 source files (25 C# files, 6 XAML files, 9 config/project files)

@@ -57,9 +57,10 @@
    ```
 
 5. **Build Output Locations**
-   - WPF Application: `FreeWinBackup\bin\Release\FreeWinBackup.exe`
+   - WPF Application: `FreeWinBackup\bin\Release\net48\FreeWinBackup.exe`
    - Core Library: `FreeWinBackup.Core\bin\Release\FreeWinBackup.Core.dll`
    - Service Host: `FreeWinBackup.ServiceHost\bin\Release\FreeWinBackup.ServiceHost.exe`
+   - Setup Application (after build): `FreeWinBackup.Setup\bin\Release\FreeWinBackup.Setup.exe`
 
 ## Building the Windows Service
 
@@ -104,6 +105,15 @@ To build only the service:
 msbuild FreeWinBackup.Core\FreeWinBackup.Core.csproj /p:Configuration=Release
 msbuild FreeWinBackup.ServiceHost\FreeWinBackup.ServiceHost.csproj /p:Configuration=Release
 ```
+
+## Building the Setup Application
+
+1. Build the solution in Release mode so `FreeWinBackup\bin\Release\net48` contains the latest payload binaries.
+2. Build the setup project:
+   ```cmd
+   msbuild FreeWinBackup.Setup\FreeWinBackup.Setup.csproj /p:Configuration=Release
+   ```
+3. Locate `FreeWinBackup.Setup\bin\Release\FreeWinBackup.Setup.exe` and distribute that executable. The WPF payload is bundled under `payload/` inside the output directory.
 
 ## Running the Application
 
@@ -195,9 +205,14 @@ Alternatively, you can configure the executable to always run as administrator:
    .\Install-FreeWinBackupService.ps1 -BinaryPath "C:\Path\To\FreeWinBackupService\FreeWinBackup.ServiceHost.exe"
    ```
 
-### Complete Deployment Package
+### Using the Setup Application
 
-For a complete deployment that includes both the WPF app and service:
+The WinForms setup utility (`FreeWinBackup.Setup.exe`) performs a per-user installation:
+1. Copy the executable to a staging location.
+2. Run the installer and choose an installation directory (defaults to `%LOCALAPPDATA%\FreeWinBackup`).
+3. Optionally create a desktop shortcut and enable auto-start.
+4. Click **Install** to copy the payload, create shortcuts, and register the Run key.
+5. Run the installer again and select **Uninstall** to remove the application.
 
 ```
 FreeWinBackup-Package\
@@ -216,10 +231,7 @@ FreeWinBackup-Package\
     └── Uninstall-FreeWinBackupService.ps1
 ```
 
-4. Distribute this folder or create an installer using tools like:
-   - WiX Toolset
-   - Inno Setup
-   - Advanced Installer
+4. Distribute this folder directly, wrap it with the built-in `FreeWinBackup.Setup.exe`, or use external packaging tools (e.g., Inno Setup, Advanced Installer) if you need additional customization.
 
 ### System Requirements for Deployment
 

@@ -1,203 +1,85 @@
-# WiX Installer and System Tray Implementation Summary
+# WinForms Setup Application and Shell Integration Summary
 
 ## Overview
 
-This document summarizes the implementation of WiX Toolset installer and system tray integration for the FreeWinBackup application.
+The WiX-based MSI installer has been replaced with a lightweight WinForms setup application that performs per-user installation tasks for FreeWinBackup. This document captures the structure of the setup utility, the way payload files are bundled, and how it integrates with existing shell features such as the system tray, single-instance enforcement, and logon auto-start.
 
-## Implementation Details
+## 1. WinForms Setup Application
 
-### 1. WiX Installer Project
+**Location:** `FreeWinBackup.Setup`
 
-**Location:** `/Installer`
+**Key Files:**
+- `FreeWinBackup.Setup.csproj` – SDK-style WinForms project targeting .NET Framework 4.8
+- `Program.cs` – Application entry point that launches the installer UI
+- `MainForm.cs` – Installation and removal logic with inline logging
+- `MainForm.Designer.cs` – Generated WinForms layout for the setup wizard
 
-**Files Created:**
-- `FreeWinBackup.Installer.wixproj` - MSBuild project file for WiX
-- `Product.wxs` - Main WiX source file defining the installer
-- `License.rtf` - License agreement for installer UI
-- `build-installer.ps1` - Build automation script
-- `test-install.ps1` - Installation testing and validation script
-- `README.md` - Technical documentation for developers
-- `QUICKSTART.md` - User-friendly installation guide
+**User Workflow:**
+1. Choose an installation directory (defaults to `%LOCALAPPDATA%\FreeWinBackup`).
+2. Optionally enable desktop shortcut creation and auto-start at logon.
+3. Decide whether to launch FreeWinBackup immediately after installation (enabled by default).
+4. Click **Install** to copy files, create shortcuts, set up the Run key, and launch when requested.
+5. Use **Uninstall** to remove files, shortcuts, and registry entries.
+6. Use **Open Install Folder** to launch Explorer in the current install directory.
 
-**Installer Features:**
-- **Installation Scope:** Per-user (LOCALAPPDATA), no admin required
-- **Start Menu Shortcut:** Always created in FreeWinBackup folder
-- **Desktop Shortcut:** Optional via `ADDDESKTOPSHORTCUT=1` property
-- **Auto-Start:** Optional via `AUTOSTART=1` property, adds registry Run key
-- **Upgrade Support:** MajorUpgrade element with persistent UpgradeCode
-- **Components Installed:**
-  - FreeWinBackup.exe (main executable)
-  - FreeWinBackup.Core.dll (core library)
-  - FreeWinBackup.exe.config (configuration)
-  - Newtonsoft.Json.dll (dependency)
+**Payload Management:**
+- The setup project references `FreeWinBackup.csproj` with `ReferenceOutputAssembly=false` so it copies build outputs without adding a binary dependency.
+- All build artifacts from `FreeWinBackup\bin\$(Configuration)\net48\**\*.*` are linked into the setup project under `payload/`.
+- Building both projects in the same configuration ensures the installer EXE always carries the latest WPF binaries and supporting files.
+
+**Shortcuts and Auto-Start:**
+- Start Menu and optional desktop shortcuts are managed through `IWshRuntimeLibrary` COM interop (see `CreateShortcut` in `MainForm.cs`).
+- Auto-start uses `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` with the value `"FreeWinBackup" = "<installPath>\FreeWinBackup.exe" /minimized`.
+- Uninstall removes the Run key value and any shortcuts created during installation.
 
 **Build Process:**
 ```powershell
-# Build main application
+# Restore dependencies and build the WPF payload
+nuget restore FreeWinBackup.sln
 msbuild FreeWinBackup.sln /p:Configuration=Release
 
-# Build installer
-msbuild Installer\FreeWinBackup.Installer.wixproj /p:Configuration=Release
+# (Optional) build just the setup project
+msbuild FreeWinBackup.Setup\FreeWinBackup.Setup.csproj /p:Configuration=Release
 
-# Output: Installer\bin\Release\FreeWinBackup.msi
+# Output: FreeWinBackup.Setup\bin\Release\FreeWinBackup.Setup.exe
 ```
 
-### 2. System Tray Integration
+**Runtime Characteristics:**
+- Per-user install by default; no elevation is required unless the chosen directory needs elevation.
+- Assumes the .NET Framework 4.8 runtime is present (same prerequisite as the main app).
+- Writes log messages to the on-screen log window for transparency during install/uninstall.
 
-**Files Created:**
-- `/FreeWinBackup/UI/TrayManager.cs` - NotifyIcon management class
-- `/FreeWinBackup/UI/AutoStartManager.cs` - Registry Run key management
-- `/FreeWinBackup/UI/SingleInstanceManager.cs` - Mutex-based single instance
+## 2. System Tray Integration
 
-**Modified Files:**
-- `App.xaml` - Changed from StartupUri to Startup event handler
-- `App.xaml.cs` - Integrated tray manager, single instance check, startup logic
-- `Views/MainWindow.xaml.cs` - Minimize to tray on close behavior
-- `FreeWinBackup.csproj` - Added new UI files
+**Files:**
+- `FreeWinBackup/UI/TrayManager.cs`
+- `FreeWinBackup/UI/AutoStartManager.cs`
+- `FreeWinBackup/UI/SingleInstanceManager.cs`
+- `App.xaml` / `App.xaml.cs`
+- `Views/MainWindow.xaml.cs`
 
-**Tray Icon Features:**
-- **Status Indicators:**
-  - Blue circle: Idle (no backup running)
-  - Green circle: Active (backup in progress)
-  - Red circle: Error (last backup failed)
-- **Context Menu:**
-  - Open FreeWinBackup (shows main window)
-  - Run Backup Now (triggers backup)
-  - Exit (graceful shutdown)
-- **Double-Click:** Opens main window
-- **Balloon Notifications:** Backup start/complete/error events
+**Tray Features:**
+- Status icons generated at runtime: blue (idle), green (backup running), red (error).
+- Context menu actions: Open FreeWinBackup, Run Backup Now, Exit.
+- Double-clicking the tray icon also opens the main window.
+- Balloon tips announce backup start/completion/errors.
 
-**Implementation Notes:**
-- Icons generated programmatically using GDI+ (Bitmap/Graphics)
-- Can be replaced with .ico files from Resources folder
-- NotifyIcon from System.Windows.Forms (requires reference)
+## 3. Auto-Start Behaviour
 
-### 3. Auto-Start Functionality
+`AutoStartManager` writes to `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` using the same value name as the installer (`FreeWinBackup`). Changes made inside the UI remain consistent with the setup utility:
+- Settings Page toggles: "Start automatically when I log in to Windows" and "Start minimized to system tray".
+- State persisted in `%AppData%\FreeWinBackup\settings.json` and synchronized with the registry.
 
-**Registry Integration:**
-- **Key:** `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`
-- **Value Name:** `FreeWinBackup`
-- **Value Data:** `"<path>\FreeWinBackup.exe" /minimized`
+## 4. Single Instance Safeguard
 
-**AutoStartManager Methods:**
-- `EnableAutoStart()` - Adds registry entry
-- `DisableAutoStart()` - Removes registry entry
-- `IsAutoStartEnabled()` - Checks current state
+FreeWinBackup enforces a single running instance via the named mutex `FreeWinBackup_SingleInstance_Mutex`. The first instance acquires the mutex, while later launches display a notification and exit gracefully. The mutex is released on application shutdown.
 
-**User Control:**
-- Settings page checkbox: "Start automatically when I log in to Windows"
-- Settings page checkbox: "Start minimized to system tray"
-- Changes saved to `settings.json` and synchronized with registry
+## 5. Supporting Documentation
 
-**Modified Files:**
-- `/FreeWinBackup.Core/Models/ScheduleSettings.cs` - Added `AutoStartEnabled` and `StartMinimized` properties
-- `/FreeWinBackup/ViewModels/SettingsViewModel.cs` - Registry sync logic
-- `/FreeWinBackup/Views/SettingsPage.xaml` - UI controls
-
-### 4. Single Instance Behavior
-
-**Implementation:**
-- Uses named Mutex: `FreeWinBackup_SingleInstance_Mutex`
-- First instance acquires mutex
-- Subsequent instances show message box and exit
-- Mutex released on application shutdown
-
-**User Experience:**
-- Prevents duplicate processes
-- Clear notification if already running
-- No risk of configuration conflicts
-
-### 5. Backup Status Integration
-
-**Event Architecture:**
-
-**Files Created:**
-- `/FreeWinBackup.Core/Services/BackupStatusEventArgs.cs` - Event arguments and status enum
-
-**Modified Files:**
-- `/FreeWinBackup.Core/Services/BackupService.cs` - Added `BackupStatusChanged` event
-- `/FreeWinBackup/UI/TrayManager.cs` - Added `OnBackupStatusChanged` handler
-
-**Status Flow:**
-1. BackupService raises `BackupStatusChanged` event
-2. TrayManager receives notification
-3. Tray icon updates to reflect status
-4. Balloon tip shown for completion/error
-
-**Backup States:**
-- `Started` - Backup initiated
-- `InProgress` - Backup running
-- `Completed` - Backup successful
-- `Failed` - Backup error
-
-### 6. Window Behavior Enhancements
-
-**Main Window Changes:**
-- Close button minimizes to tray instead of exiting
-- `AllowClose` property controls actual exit
-- Set to `true` only when Exit is selected from tray menu
-- Prevents accidental closure
-
-**Startup Behavior:**
-- If `/minimized` argument: Start in tray, don't show window
-- If `StartMinimized` setting enabled: Start in tray
-- Otherwise: Show main window normally
-- Balloon tip notification when started minimized
-
-### 7. Documentation
-
-**Updated Files:**
-- `/README.md` - Added Installation section, system tray documentation, auto-start guide
-- `/Installer/README.md` - Technical build and installation documentation
-- `/Installer/QUICKSTART.md` - End-user installation guide
-- `/.gitignore` - Added WiX build artifacts (*.wixobj, *.wixpdb, *.msi, *.msm)
-
-**Documentation Coverage:**
-- Installation process (interactive and command-line)
-- System requirements
-- Build instructions for developers
-- Troubleshooting common issues
-- Feature descriptions
-- Command-line arguments
-
-## Code Quality and Security
-
-### Security Scan Results
-
-**CodeQL Analysis:** ✅ 0 alerts
-
-- No security vulnerabilities detected
-- All registry operations use HKCU (per-user scope)
-- No hardcoded credentials or secrets
-- Proper exception handling throughout
-
-### Code Statistics
-
-**Total Changes:**
-- 23 files modified
-- 1,484 lines added
-- 2 lines removed
-
-**New Files:**
-- 3 C# classes (UI namespace)
-- 1 C# event args class (Core.Services)
-- 7 installer/documentation files
-
-**Modified Files:**
-- 2 XAML files
-- 5 C# code files
-- 2 project files (.csproj)
-- 1 solution file (.sln)
-- 1 configuration file (.gitignore)
-
-### Design Principles Applied
-
-1. **Minimal Changes:** Only modified what was necessary
-2. **Separation of Concerns:** UI logic in separate classes
-3. **Event-Driven:** Loose coupling between BackupService and UI
-4. **Single Responsibility:** Each class has one clear purpose
-5. **Defensive Programming:** Exception handling, null checks
-6. **User Control:** Settings for all behaviors
+- `README.md` – Updated installation guidance referencing the WinForms setup utility.
+- `BUILD.md` – Build workflow for packaging the setup executable along with the WPF payload.
+- `QUICKSTART.md` – First-run experience using the new installer.
+- `PROJECT_SUMMARY.md` – High-level overview listing the setup project as part of the solution.
 
 ## Testing Recommendations
 
@@ -274,10 +156,10 @@ Potential improvements not included in this implementation:
 4. **Quick Schedule:** Create/edit schedules from tray menu
 5. **Notification Settings:** User control over balloon tip frequency
 6. **Task Scheduler:** Alternative to registry Run key
-7. **WiX Burn:** Bundle .NET Framework 4.8 with installer
-8. **Code Signing:** Digital signature for MSI
-9. **Per-Machine Option:** Alternative installation scope
-10. **Custom Actions:** Pre/post install scripts
+7. **Bootstrapper:** Provide a prerequisite stub that installs .NET Framework 4.8 when missing
+8. **Code Signing:** Digitally sign the setup executable for better trust
+9. **Per-Machine Option:** Allow elevated installs to `Program Files`
+10. **Custom Actions:** Pre/post install hooks (e.g., migrate settings)
 
 ## Migration Notes
 
@@ -292,9 +174,9 @@ For users upgrading from previous versions:
 
 **Common Issues:**
 
-1. **MSI build fails:**
-   - Install WiX Toolset v3.11+
-   - Build main application first (Release mode)
+1. **Setup build fails:**
+   - Ensure the WPF project builds first (Release mode)
+   - Confirm `FreeWinBackup\bin\Release\net48` exists before building the setup project
 
 2. **Application doesn't auto-start:**
    - Check Settings page checkbox
@@ -316,4 +198,4 @@ For users upgrading from previous versions:
 
 ## Conclusion
 
-This implementation successfully adds professional installer and system tray capabilities to FreeWinBackup, making it more user-friendly and production-ready. All acceptance criteria from the original requirements have been met with minimal, focused changes to the codebase.
+This implementation delivers a self-contained setup application and preserves the system tray capabilities that make FreeWinBackup user-friendly and production-ready. All acceptance criteria from the installer refresh have been met with focused updates to the codebase and documentation.

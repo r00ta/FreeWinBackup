@@ -20,7 +20,7 @@ A free, open-source Windows backup scheduler application built with WPF and .NET
 - **MVVM Architecture**: Clean separation of concerns for maintainability
 - **JSON/XML Storage**: Configure using JSON or XML for easy backup and portability
 - **User-Friendly UI**: Intuitive WPF interface for managing schedules, viewing logs, and configuring settings
-- **MSI Installer**: Easy installation with WiX Toolset-based installer
+- **Setup Application**: WinForms-based installer that handles copy, shortcuts, and auto-start
 
 ## System Requirements
 
@@ -30,36 +30,19 @@ A free, open-source Windows backup scheduler application built with WPF and .NET
 
 ## Installation
 
-### Option 1: Using the MSI Installer (Recommended)
+### Option 1: Using the Setup Application (Recommended)
 
-1. Download the latest `FreeWinBackup.msi` from the [Releases](../../releases) page
-2. Run the installer (double-click or use command line)
-3. Follow the installation wizard
-
-**Installation Options:**
-- **Auto-Start**: Enable automatic launch at user logon
-- **Desktop Shortcut**: Create a shortcut on the desktop
-
-**Command-Line Installation:**
-```powershell
-# Basic installation
-msiexec /i FreeWinBackup.msi
-
-# Silent installation with auto-start
-msiexec /i FreeWinBackup.msi /qn AUTOSTART=1
-
-# Installation with desktop shortcut
-msiexec /i FreeWinBackup.msi /qn ADDDESKTOPSHORTCUT=1
-```
+1. Build the solution in Release mode (or download `FreeWinBackup.Setup.exe` from the Releases page when available).
+2. Navigate to `FreeWinBackup.Setup\bin\Release\` and run `FreeWinBackup.Setup.exe`.
+3. Choose the install location (defaults to `%LOCALAPPDATA%\FreeWinBackup`).
+4. Select whether to create a desktop shortcut and launch at logon.
+5. Leave **Launch FreeWinBackup now** checked if you want the app to start immediately.
+6. Click **Install**. The setup utility copies the payload, creates shortcuts, configures auto-start, and launches the app when requested.
 
 **Uninstallation:**
-```powershell
-# Via Control Panel: Programs and Features > FreeWinBackup > Uninstall
-# Or via command line:
-msiexec /x FreeWinBackup.msi /qn
-```
+- Run `FreeWinBackup.Setup.exe` again and click **Uninstall** to remove files, shortcuts, and the Run key entry.
 
-For detailed installer documentation, see [Installer/README.md](Installer/README.md).
+See `INSTALLER_IMPLEMENTATION.md` for a technical breakdown of the setup utility.
 
 ### Option 2: Manual Installation
 
@@ -72,7 +55,6 @@ For detailed installer documentation, see [Installer/README.md](Installer/README
 ### Prerequisites
 - Visual Studio 2019 or later
 - .NET Framework 4.8 SDK
-- WiX Toolset v3.11 or later (optional, for building the installer)
 
 ### Build Steps
 
@@ -81,9 +63,12 @@ For detailed installer documentation, see [Installer/README.md](Installer/README
 3. Build the solution (F6)
 4. Run the application (F5)
 
-### Building the Installer
+### Building the Setup Application
 
-See [Installer/README.md](Installer/README.md) for detailed instructions on building the MSI installer.
+1. Build the solution in Release mode (ensures `FreeWinBackup\bin\Release\net48` contains the latest payload).
+2. Build the `FreeWinBackup.Setup` project (F6 builds all projects by default).
+3. Locate the packaged installer at `FreeWinBackup.Setup\bin\Release\FreeWinBackup.Setup.exe`.
+4. Distribute the EXE directly; it already contains the WPF payload under `payload/`.
 
 ## Usage
 

@@ -16,7 +16,7 @@ SOURCE CODE:
   ✓ 25 C# files (1,172 lines)
   ✓ 6 XAML files (275 lines)
   ✓ 9 configuration files
-  ✓ 1 Visual Studio solution
+  ✓ 1 Visual Studio solution (includes WPF app, core library, service host, WinForms setup)
   ✓ 1 app.manifest (admin privileges)
 
 DOCUMENTATION:
@@ -102,6 +102,12 @@ FreeWinBackup/
     ├── app.manifest                       # Admin privileges
     ├── FreeWinBackup.csproj              # Project file
     └── packages.config                    # NuGet packages
+  └── FreeWinBackup.Setup/                   # WinForms setup utility
+    ├── FreeWinBackup.Setup.csproj         # Setup project file
+    ├── Program.cs                         # WinForms entry point
+    ├── MainForm.cs                        # Install/uninstall logic
+    ├── MainForm.Designer.cs               # Generated UI layout
+    └── Properties/                        # WinForms resources
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                          TECHNICAL DETAILS                                   ║

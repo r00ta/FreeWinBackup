@@ -2,7 +2,7 @@
 
 ## First Time Setup (5 Minutes)
 
-### 1. Build the Application
+### 1. Build the Applications
 ```powershell
 # Open Developer Command Prompt for Visual Studio
 cd path\to\FreeWinBackup
@@ -10,10 +10,19 @@ nuget restore FreeWinBackup.sln
 msbuild FreeWinBackup.sln /p:Configuration=Release
 ```
 
-### 2. Run the Application
-- Navigate to `FreeWinBackup\bin\Release\`
-- Right-click `FreeWinBackup.exe` → Run as Administrator
-- The application window will appear
+### 2. Install with the Setup Utility
+- Navigate to `FreeWinBackup.Setup\bin\Release\`
+- Double-click `FreeWinBackup.Setup.exe`
+- Accept the default location or choose a custom folder
+- Optionally enable auto-start and desktop shortcut
+- Leave **Launch FreeWinBackup now** checked to open the app immediately
+- Click **Install**; use **Open Install Folder** to verify payload files
+
+### 3. Launch FreeWinBackup
+- If you left the launch option enabled, the app opens automatically after install
+- Otherwise use the Start Menu shortcut (`Start > FreeWinBackup > FreeWinBackup`)
+- Or run `%LOCALAPPDATA%\FreeWinBackup\FreeWinBackup.exe`
+- Right-click the executable → **Run as administrator** if you need to control services
 
 ## Creating Your First Backup (2 Minutes)
 

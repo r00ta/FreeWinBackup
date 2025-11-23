@@ -1,0 +1,77 @@
+name: Build and Release Setup
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore NuGet packages
+        run: nuget restore FreeWinBackup.sln
+        shell: pwsh
+
+      - name: Locate MSBuild
+        id: msbuild
+        shell: pwsh
+        run: |
+          $msbuildPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | Select-Object -First 1
+          if (-not $msbuildPath) {
+            throw 'MSBuild.exe not found.'
+          }
+          "MSBUILD_PATH=$msbuildPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build solution (Release)
+        shell: pwsh
+        run: |
+          &"$env:MSBUILD_PATH" FreeWinBackup.sln /p:Configuration=Release /p:Platform="Any CPU"
+
+      - name: Package setup artifacts
+        shell: pwsh
+        run: |
+          $outputDir = "FreeWinBackup.Setup\bin\Release\net48"
+          if (-not (Test-Path $outputDir)) {
+            throw "Expected build output folder '$outputDir' was not found."
+          }
+
+          $packageDir = "dist"
+          Remove-Item $packageDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $packageDir | Out-Null
+
+          Copy-Item "$outputDir\FreeWinBackup.Setup.exe" $packageDir
+          Copy-Item "$outputDir\FreeWinBackup.Setup.pdb" $packageDir -ErrorAction SilentlyContinue
+          Copy-Item "$outputDir\payload" $packageDir\payload -Recurse
+
+          $zipPath = "FreeWinBackup.Setup.zip"
+          if (Test-Path $zipPath) {
+            Remove-Item $zipPath -Force
+          }
+          Compress-Archive -Path (Join-Path $packageDir '*') -DestinationPath $zipPath
+
+          "SETUP_EXE=$outputDir\FreeWinBackup.Setup.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "SETUP_ZIP=$PWD\$zipPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: setup-package
+          path: |
+            ${{ env.SETUP_EXE }}
+            ${{ env.SETUP_ZIP }}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: FreeWinBackup ${{ github.ref_name }}
+          files: |
+            ${{ env.SETUP_EXE }}
+            ${{ env.SETUP_ZIP }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
